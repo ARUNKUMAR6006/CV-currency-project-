@@ -1,28 +1,60 @@
-1. This project detects Indian currency using a webcam in Google Colab.
+1. This project detects!pip install gtts opencv-python
+from IPython.display import display, Javascript
+from google.colab.output import eval_js
+import cv2
+import numpy as np
+from base64 import b64decode
 
+def take_photo(filename='photo.jpg', quality=0.8):
+    js = Javascript('''
+        async function takePhoto(quality) {
+          const div = document.createElement('div');
+          const capture = document.createElement('button');
+          capture.textContent = 'Capture';
+          div.appendChild(capture);
 
-2. It captures images directly from the browser using JavaScript.
+          const video = document.createElement('video');
+          video.style.display = 'block';
+          const stream = await navigator.mediaDevices.getUserMedia({video: true});
 
+          document.body.appendChild(div);
+          div.appendChild(video);
+          video.srcObject = stream;
+          await video.play();
 
-3. OpenCV is used for basic image processing.
+          await new Promise((resolve) => capture.onclick = resolve);
 
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext('2d').drawImage(video, 0, 0);
 
-4. The detection logic is currently a placeholder and can be replaced with a model.
+          stream.getTracks().forEach(track => track.stop());
+          div.remove();
 
+          return canvas.toDataURL('image/jpeg', quality);
+        }
+    ''')
+    display(js)
+    data = eval_js('takePhoto({})'.format(quality))
+    binary = b64decode(data.split(',')[1])
+    
+    with open(filename, 'wb') as f:
+        f.write(binary)
+    return filename
+img = cv2.imread(image_path)
 
-5. It identifies currency notes based on predefined conditions.
+# Dummy condition (replace with model prediction)
+label = "50 rupees"   # Assume detected
+from gtts import gTTS
+from IPython.display import Audio
 
+if label == "50 rupees":
+    text = "This is fifty rupees"
+else:
+    text = "Currency not recognized"
 
-6. Google Text-to-Speech (gTTS) converts the result into audio output.
+tts = gTTS(text)
+tts.save("output.mp3")
 
-
-7. The system provides voice feedback describing the detected currency.
-
-
-8. It runs completely online without requiring local installation.
-
-
-9. The model can be upgraded using Teachable Machine or TensorFlow.
-
-
-10. Future improvements include real-time detection and support for multiple denominations.
+Audio("output.mp3")
